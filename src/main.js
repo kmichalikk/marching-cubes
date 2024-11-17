@@ -1,14 +1,13 @@
 import './style.css';
 
 import Renderer from "./renderer.js";
-import {BoxGeometry, Mesh, MeshBasicMaterial, Scene} from "three";
+import {BoxGeometry, Mesh, MeshBasicMaterial, Scene, Vector2} from "three";
+import PointSampler from "./pointSampler.js";
 
 const scene = new Scene();
 const renderer = new Renderer("#root", scene);
 
-const boxGeometry = new BoxGeometry(1, 1, 1);
-const boxMaterial = new MeshBasicMaterial({color: 0xff0000});
-const mesh = new Mesh(boxGeometry, boxMaterial);
-scene.add(mesh);
+const points = new PointSampler(new Vector2(-20, -20), new Vector2(20, 20));
+scene.add(points);
 
 renderer.init();

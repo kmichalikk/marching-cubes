@@ -1,4 +1,5 @@
 import {PerspectiveCamera, WebGLRenderer, Scene, Vector3} from 'three';
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 
 /**
  * @typedef {{priority: int, action: function(float): void, name: string}} UpdateAction
@@ -27,8 +28,7 @@ export default class Renderer {
             antialias: true,
         });
         this.camera = new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        this.camera.position.set(10, 10, 10);
-        this.camera.lookAt(0, 0, 0);
+        this.camera.position.set(20, 20, 20)
         this.updateActions = [];
         this.scene = scene;
     }
@@ -36,6 +36,9 @@ export default class Renderer {
     init() {
         window.addEventListener('resize', this.handleResize.bind(this));
         this.handleResize();
+
+        const orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
+        this.addUpdateAction('orbit controls', () => orbitControls.update(), 1);
 
         this.renderer.setAnimationLoop(this.update.bind(this));
     }
