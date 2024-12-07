@@ -6,7 +6,9 @@ export default class MarchingCubesGeometry extends THREE.Mesh {
     constructor() {
         super();
 
-        const matrix = new PointSampler().sampleSine3DPoints(new THREE.Vector2(-20, -20), new THREE.Vector2(20, 20));
+        const halfSize = 100;
+        const pointSampler = new PointSampler();
+        const matrix = pointSampler.samplePerlinNoise3DPoints(new THREE.Vector2(-halfSize, -halfSize), new THREE.Vector2(halfSize, halfSize));
         const vertices = [];
         for (let i = 0; i < matrix.length-1; i++) {
             for (let j = 0; j < matrix[i].length-1; j++) {
@@ -30,7 +32,11 @@ export default class MarchingCubesGeometry extends THREE.Mesh {
                             break;
                         }
 
-                        vertices.push(i - 20 + lookupIndices[e].x, k - 40 + lookupIndices[e].y, j - 20 + lookupIndices[e].z);
+                        vertices.push(
+                            (i - halfSize + lookupIndices[e].x) * 0.5,
+                            (k - halfSize + lookupIndices[e].y) * 0.5,
+                            (j - halfSize + lookupIndices[e].z) * 0.5
+                        );
                     }
                 }
             }
