@@ -28,7 +28,7 @@ export default class Renderer {
             antialias: true,
         });
         this.camera = new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        this.camera.position.set(20, 20, 20)
+        this.camera.position.set(50, 80, 100)
         this.updateActions = [];
         this.scene = scene;
     }
