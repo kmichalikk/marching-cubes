@@ -119,8 +119,12 @@ export default class PointSampler {
         // perform sampling
         const width = upperRight.x - lowerLeft.x;
         const depth = upperRight.y - lowerLeft.y;
-        const height = 200;
-        const scale = [[0.011, 100], [0.027, 40], [0.057, 10]];
+        const height = 300;
+        const passes = [
+            [0.011, 150, v => Math.pow(v+0.5, 3)/2],
+            [0.027, 50, v => v],
+            [0.057, 20, v => v],
+        ];
 
         let matrix = [];
         for (let i = 0; i < width; i++) {
@@ -134,8 +138,8 @@ export default class PointSampler {
         for (let i = lowerLeft.y; i < upperRight.y; i++) {
             for (let j = lowerLeft.x; j < upperRight.x; j++) {
                 let h = 0;
-                for (const [s, w] of scale) {
-                    h += sample(j * s, i * s, 1) * w;
+                for (const [s, w, fn] of passes) {
+                    h += fn(sample(j * s, i * s, 1)) * w;
                 }
                 for (let k = 0; k < height; k++) {
                     let distanceFromSurface = k - h;

@@ -1,10 +1,22 @@
 import * as THREE from "three";
 import PointSampler from "./pointSampler.js";
 import {getWeights, lookupIndices, lookupTriangulation} from "./lookup.js";
+import {Vector3} from "three";
 
 export default class MarchingCubesMesh extends THREE.Mesh {
-    constructor(scale = 0.5) {
+    constructor(scale = 2) {
         super();
+
+        // [starting height, r, g, b]
+        this.colormap = [
+            [0, 0.84, 0.92, 0.45],
+            [50, 0.84, 0.92, 0.45],
+            [60, 0.46, 0.98, 0.27],
+            [100, 0.44, 0.72, 0.3],
+            [140, 0.74, 0.74, 0.74],
+            [180, 0.66, 0.66, 0.72],
+            [999, 0.66, 0.66, 0.72],
+        ];
 
         const halfSize = 100;
         const pointSampler = new PointSampler();
@@ -45,27 +57,29 @@ export default class MarchingCubesMesh extends THREE.Mesh {
                         }
 
                         x = (i - halfSize + x) * scale;
-                        y = (k - 100 + y) * scale;
+                        y = k + y;
                         z = (j - halfSize + z) * scale;
 
-                        let color = [0.45, 0.76, 0.17];
-                        if (y > 12) {
-                            color = [0.89, 0.85, 0.82];
-                        } else if (y > 5) {
-                            color = [0.59, 0.43, 0.44];
-                        } else if (y > 0) {
-                            color = [0.54, 0.44, 0.4];
-                        } else if (y > -5) {
-                            color = [0.42, 0.4, 0.28];
-                        } else if (y > -15) {
-                            color = [0.42, 0.57, 0.16];
-                        }
-
                         vertices.push(x, y, z);
-                        colors.push(...color);
                     }
                 }
             }
+        }
+
+        const up = new Vector3(0, 1, 0);
+        for (let i = 0; i < vertices.length; i += 9) {
+            const ab = new Vector3(vertices[i+3] - vertices[i], vertices[i+4] - vertices[i+1], vertices[i+5] - vertices[i+2]);
+            const ac = new Vector3(vertices[i+6] - vertices[i], vertices[i+7] - vertices[i+1], vertices[i+8] - vertices[i+2]);
+            let slope = 1 - Math.abs(ab.cross(ac).normalize().dot(up));
+
+            const midHeight = Math.max(vertices[i+1], vertices[i+4], vertices[i+7]);
+
+            const color = this.sampleColor(midHeight, slope);
+            colors.push(
+                ...color,
+                ...color,
+                ...color
+            )
         }
 
         this.geometry = new THREE.BufferGeometry();
@@ -73,5 +87,27 @@ export default class MarchingCubesMesh extends THREE.Mesh {
         this.geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colors), 3));
         this.geometry.computeVertexNormals();
         this.material = new THREE.MeshPhongMaterial({vertexColors: true, side: THREE.DoubleSide});
+    }
+
+    sampleColor(height, slope) {
+        // adjust height by slope (dot product between normal and up vector) with some linear function that looks good
+        const adjustedHeight = height * (0.8 + slope);
+
+        // find a threshold that current height fits in
+        let i = 0;
+        while (this.colormap[i+1][0] < adjustedHeight) {
+            i++;
+        }
+
+        // interpolate between current and next color but use a power of t,
+        // so the second color starts changing the results right before the next threshold
+        const t = (adjustedHeight - this.colormap[i][0]) / (this.colormap[i+1][0] - this.colormap[i][0]);
+        const t2 = Math.pow(t, 10);
+
+        return [
+            this.colormap[i][1] * (1-t2) + this.colormap[i+1][1] * t2,
+            this.colormap[i][2] * (1-t2) + this.colormap[i+1][2] * t2,
+            this.colormap[i][3] * (1-t2) + this.colormap[i+1][3] * t2,
+        ];
     }
 }
