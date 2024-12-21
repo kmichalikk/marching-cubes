@@ -38,6 +38,7 @@ export default class Renderer {
         this.handleResize();
 
         const orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
+        orbitControls.target = new Vector3(0, 30, 0)
         this.addUpdateAction('orbit controls', () => orbitControls.update(), 1);
 
         this.renderer.setAnimationLoop(this.update.bind(this));

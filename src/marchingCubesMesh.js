@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import PointSampler from "./pointSampler.js";
-import {lookupIndices, lookupTriangulation} from "./lookup.js";
+import {getWeights, lookupIndices, lookupTriangulation} from "./lookup.js";
 
 export default class MarchingCubesMesh extends THREE.Mesh {
-    constructor() {
+    constructor(scale = 0.5) {
         super();
 
         const halfSize = 100;
@@ -15,27 +15,38 @@ export default class MarchingCubesMesh extends THREE.Mesh {
             for (let j = 0; j < matrix[i].length-1; j++) {
                 for (let k = 0; k < matrix[i][j].length-1; k++) {
                     let flag = 0;
-                    if (matrix[i][j][k] !== matrix[i+1][j][k]) { flag |= 1 }
-                    if (matrix[i+1][j][k] !== matrix[i+1][j+1][k]) { flag |= 2 }
-                    if (matrix[i+1][j+1][k] !== matrix[i][j+1][k]) { flag |= 4 }
-                    if (matrix[i][j+1][k] !== matrix[i][j][k]) { flag |= 8 }
-                    if (matrix[i][j][k+1] !== matrix[i+1][j][k+1]) { flag |= 16 }
-                    if (matrix[i+1][j][k+1] !== matrix[i+1][j+1][k+1]) { flag |= 32 }
-                    if (matrix[i+1][j+1][k+1] !== matrix[i][j+1][k+1]) { flag |= 64 }
-                    if (matrix[i][j+1][k+1] !== matrix[i][j][k+1]) { flag |= 128 }
-                    if (matrix[i][j][k] !== matrix[i][j][k+1]) { flag |= 256 }
-                    if (matrix[i+1][j][k] !== matrix[i+1][j][k+1]) { flag |= 512 }
-                    if (matrix[i+1][j+1][k] !== matrix[i+1][j+1][k+1]) { flag |= 1024 }
-                    if (matrix[i][j+1][k] !== matrix[i][j+1][k+1]) { flag |= 2048 }
+                    if (matrix[i][j][k] * matrix[i+1][j][k] < 0) { flag |= 1 }
+                    if (matrix[i+1][j][k] * matrix[i+1][j+1][k] < 0) { flag |= 2 }
+                    if (matrix[i+1][j+1][k] * matrix[i][j+1][k] < 0) { flag |= 4 }
+                    if (matrix[i][j+1][k] * matrix[i][j][k] < 0) { flag |= 8 }
+                    if (matrix[i][j][k+1] * matrix[i+1][j][k+1] < 0) { flag |= 16 }
+                    if (matrix[i+1][j][k+1] * matrix[i+1][j+1][k+1] < 0) { flag |= 32 }
+                    if (matrix[i+1][j+1][k+1] * matrix[i][j+1][k+1] < 0) { flag |= 64 }
+                    if (matrix[i][j+1][k+1] * matrix[i][j][k+1] < 0) { flag |= 128 }
+                    if (matrix[i][j][k] * matrix[i][j][k+1] < 0) { flag |= 256 }
+                    if (matrix[i+1][j][k] * matrix[i+1][j][k+1] < 0) { flag |= 512 }
+                    if (matrix[i+1][j+1][k] * matrix[i+1][j+1][k+1] < 0) { flag |= 1024 }
+                    if (matrix[i][j+1][k] * matrix[i][j+1][k+1] < 0) { flag |= 2048 }
 
                     for (const e of lookupTriangulation[flag]) {
                         if (e === -1) {
                             break;
                         }
 
-                        const x = (i - halfSize + lookupIndices[e].x) * 0.5;
-                        const y = (k - halfSize + lookupIndices[e].y) * 0.5;
-                        const z = (j - halfSize + lookupIndices[e].z) * 0.5;
+                        const w = getWeights(matrix, i, j, k)[e];
+                        let x = lookupIndices[e].x;
+                        let y = lookupIndices[e].y;
+                        let z = lookupIndices[e].z;
+
+                        switch (true) {
+                            case x === 0.5: x = w; break;
+                            case y === 0.5: y = w; break;
+                            case z === 0.5: z = w; break;
+                        }
+
+                        x = (i - halfSize + x) * scale;
+                        y = (k - 100 + y) * scale;
+                        z = (j - halfSize + z) * scale;
 
                         let color = [0.45, 0.76, 0.17];
                         if (y > 12) {

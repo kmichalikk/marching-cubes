@@ -137,8 +137,13 @@ export default class PointSampler {
                 for (const [s, w] of scale) {
                     h += sample(j * s, i * s, 1) * w;
                 }
-                for (let k = 0; k < h && k < height; k++) {
-                    matrix[i-lowerLeft.x][j-lowerLeft.y][k] = 1
+                for (let k = 0; k < height; k++) {
+                    let distanceFromSurface = k - h;
+                    if (distanceFromSurface < 0.0001) {
+                        // avoid floating point errors later
+                        distanceFromSurface += 0.0001;
+                    }
+                    matrix[i-lowerLeft.x][j-lowerLeft.y][k] = distanceFromSurface;
                 }
             }
         }

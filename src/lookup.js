@@ -307,9 +307,39 @@ const lookupIndices = {
     11: new THREE.Vector3(0, 0.5, 1)
 }
 
+function getWeights(matrix, i, j, k) {
+    /**
+     *      x ***4----- x
+     *    7 |         5 |
+     *  .   8       .   9
+     * x ***6----- x    *
+     * |    *      |    *
+     * b    x ***0-a--- x
+     * *  3        *  1
+     * *.          *.
+     * x ***2----- x
+     */
+    return {
+        0: Math.abs(matrix[i][j][k]) / (Math.abs(matrix[i][j][k]) + Math.abs(matrix[i+1][j][k])),
+        1: Math.abs(matrix[i+1][j][k]) / (Math.abs(matrix[i+1][j][k]) + Math.abs(matrix[i+1][j+1][k])),
+        2: Math.abs(matrix[i][j+1][k]) / (Math.abs(matrix[i][j+1][k]) + Math.abs(matrix[i+1][j+1][k])),
+        3: Math.abs(matrix[i][j][k]) / (Math.abs(matrix[i][j][k]) + Math.abs(matrix[i][j+1][k])),
+        4: Math.abs(matrix[i][j][k+1]) / (Math.abs(matrix[i][j][k+1]) + Math.abs(matrix[i+1][j][k+1])),
+        5: Math.abs(matrix[i+1][j][k+1]) / (Math.abs(matrix[i+1][j][k+1]) + Math.abs(matrix[i+1][j+1][k+1])),
+        6: Math.abs(matrix[i][j+1][k+1]) / (Math.abs(matrix[i][j+1][k+1]) + Math.abs(matrix[i+1][j+1][k+1])),
+        7: Math.abs(matrix[i][j][k+1]) / (Math.abs(matrix[i][j][k+1]) + Math.abs(matrix[i][j+1][k+1])),
+        8: Math.abs(matrix[i][j][k]) / (Math.abs(matrix[i][j][k]) + Math.abs(matrix[i][j][k+1])),
+        9: Math.abs(matrix[i+1][j][k]) / (Math.abs(matrix[i+1][j][k]) + Math.abs(matrix[i+1][j][k+1])),
+        10: Math.abs(matrix[i+1][j+1][k]) / (Math.abs(matrix[i+1][j+1][k]) + Math.abs(matrix[i+1][j+1][k+1])),
+        11: Math.abs(matrix[i][j+1][k]) / (Math.abs(matrix[i][j+1][k]) + Math.abs(matrix[i][j+1][k+1])),
+    }
+
+}
+
 const lookupTriangulation = Object.fromEntries(flags.map((v, i) => [v, triangulation[i]]));
 
 export {
     lookupIndices,
-    lookupTriangulation
+    lookupTriangulation,
+    getWeights
 }
