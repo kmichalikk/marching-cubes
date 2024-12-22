@@ -1,5 +1,5 @@
-import {Object3D, Vector3, Mesh, PerspectiveCamera} from "three";
-import MarchingCubesMesh from "./marchingCubesMesh.js";
+import {Object3D, Vector3, Mesh, PerspectiveCamera, PlaneGeometry, MeshPhongMaterial, DoubleSide} from "three";
+import MarchingCubesTerrainChunk from "./marchingCubesTerrainChunk.js";
 import {PerlinSeed} from "./pointSampler.js";
 
 export default class Terrain extends Object3D {
@@ -70,7 +70,7 @@ export default class Terrain extends Object3D {
 
             const [x, z] = ch.split(",");
             const position = new Vector3(parseInt(x), 0, parseInt(z));
-            this.loaded[ch] = new MarchingCubesMesh(this.seed, position, 400, 5);
+            this.loaded[ch] = new MarchingCubesTerrainChunk(this.seed, position, 400, 5);
             this.loaded[ch].position.copy(position);
             console.log('loading', ch);
             this.add(this.loaded[ch]);

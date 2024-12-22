@@ -1,8 +1,17 @@
 import {PointSampler} from "./pointSampler.js";
 import {getWeights, lookupIndices, lookupTriangulation} from "./lookup.js";
-import {BufferAttribute, BufferGeometry, DoubleSide, Mesh, MeshPhongMaterial, Vector2, Vector3} from "three";
+import {
+    BufferAttribute,
+    BufferGeometry,
+    DoubleSide,
+    Mesh,
+    MeshPhongMaterial,
+    PlaneGeometry,
+    Vector2,
+    Vector3
+} from "three";
 
-export default class MarchingCubesMesh extends Mesh {
+export default class MarchingCubesTerrainChunk extends Mesh {
     terrainScale = 1;
     loaded = false;
 
@@ -20,6 +29,14 @@ export default class MarchingCubesMesh extends Mesh {
             [160, 0.66, 0.66, 0.72],
             [999, 0.66, 0.66, 0.72],
         ];
+
+        const water = new Mesh(
+            new PlaneGeometry(800, 800),
+            new MeshPhongMaterial({color: 0x108fc9, side: DoubleSide, opacity: 0.8, transparent: true})
+        );
+        water.rotation.set(-Math.PI/2, 0, 0);
+        this.add(water);
+        water.position.y = 65*this.terrainScale;
 
         this.generateAttributes(seed, position, halfSize).then(
             ([vertices, colors]) => {
