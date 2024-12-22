@@ -41,14 +41,14 @@ export default class Player extends Object3D {
 
         this.move.applyAxisAngle(new Vector3(0, 1, 0), this.rotation * dt);
         this.rotateY(this.rotation * dt);
-        this.position.add(this.move);
+        // this.position.add(this.move);
         this.rotation -= this.rotation * dt;
         this.rotation -= this.rotation * dt;
     }
 
     setCameraToFollow(camera) {
         this.add(camera);
-        camera.position.set(0, 50, -70);
+        camera.position.set(0, 50, -100);
         camera.lookAt(this.position);
     }
 }

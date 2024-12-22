@@ -1,26 +1,32 @@
-import * as THREE from "three";
-import PointSampler from "./pointSampler.js";
+import {PointSampler} from "./pointSampler.js";
 import {getWeights, lookupIndices, lookupTriangulation} from "./lookup.js";
-import {Vector3} from "three";
+import {BufferAttribute, BufferGeometry, DoubleSide, Mesh, MeshPhongMaterial, Vector2, Vector3} from "three";
 
-export default class MarchingCubesMesh extends THREE.Mesh {
-    constructor(scale = 2) {
+export default class MarchingCubesMesh extends Mesh {
+    terrainScale = 1;
+
+    constructor(seed, position, halfSize, scale = 2) {
         super();
+        this.terrainScale = scale;
 
         // [starting height, r, g, b]
         this.colormap = [
             [0, 0.84, 0.92, 0.45],
             [50, 0.84, 0.92, 0.45],
-            [60, 0.46, 0.98, 0.27],
+            [80, 0.46, 0.98, 0.27],
             [100, 0.44, 0.72, 0.3],
-            [140, 0.74, 0.74, 0.74],
-            [180, 0.66, 0.66, 0.72],
+            [120, 0.74, 0.74, 0.74],
+            [160, 0.66, 0.66, 0.72],
             [999, 0.66, 0.66, 0.72],
         ];
 
-        const halfSize = 100;
         const pointSampler = new PointSampler();
-        const matrix = pointSampler.samplePerlinNoise3DPoints(new THREE.Vector2(-halfSize, -halfSize), new THREE.Vector2(halfSize, halfSize));
+        const matrix = pointSampler.samplePerlinNoise3DPoints(
+            new Vector2(position.x-halfSize, position.z-halfSize),
+            new Vector2(position.x+halfSize, position.z+halfSize),
+            this.terrainScale,
+            seed,
+        );
         const vertices = [];
         const colors = [];
         for (let i = 0; i < matrix.length-1; i++) {
@@ -56,9 +62,9 @@ export default class MarchingCubesMesh extends THREE.Mesh {
                             case z === 0.5: z = w; break;
                         }
 
-                        x = (i - halfSize + x) * scale;
-                        y = k + y;
-                        z = (j - halfSize + z) * scale;
+                        x = (i * this.terrainScale - halfSize + x * this.terrainScale);
+                        y = (k + y) * this.terrainScale;
+                        z = (j * this.terrainScale - halfSize + z * this.terrainScale);
 
                         vertices.push(x, y, z);
                     }
@@ -82,16 +88,22 @@ export default class MarchingCubesMesh extends THREE.Mesh {
             )
         }
 
-        this.geometry = new THREE.BufferGeometry();
-        this.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
-        this.geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colors), 3));
+        this.geometry = new BufferGeometry();
+        this.geometry.setAttribute('position', new BufferAttribute(new Float32Array(vertices), 3));
+        this.geometry.setAttribute('color', new BufferAttribute(new Float32Array(colors), 3));
         this.geometry.computeVertexNormals();
-        this.material = new THREE.MeshPhongMaterial({vertexColors: true, side: THREE.DoubleSide});
+        this.material = new MeshPhongMaterial({vertexColors: true, side: DoubleSide});
+    }
+
+    dispose() {
+        this.geometry.dispose();
+        this.material.dispose();
+        this.removeFromParent();
     }
 
     sampleColor(height, slope) {
         // adjust height by slope (dot product between normal and up vector) with some linear function that looks good
-        const adjustedHeight = height * (0.8 + slope);
+        const adjustedHeight = height * (0.9 + slope) / this.terrainScale;
 
         // find a threshold that current height fits in
         let i = 0;

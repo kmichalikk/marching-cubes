@@ -1,4 +1,5 @@
-import {PerspectiveCamera, WebGLRenderer, Scene} from 'three';
+import {PerspectiveCamera, WebGLRenderer, Scene, Vector3} from 'three';
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 
 /**
  * @typedef {{priority: int, action: function(float): void, name: string}} UpdateAction

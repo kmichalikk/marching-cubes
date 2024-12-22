@@ -1,4 +1,26 @@
-export default class PointSampler {
+class PerlinSeed {
+    permutations;
+
+    constructor() {
+        this.permutations = Array.from({length: 256}, (x, i) => i);
+        this.fisherYates(this.permutations);
+        this.permutations.push(...this.permutations)
+    }
+
+    fisherYates(values) {
+        let i = values.length - 1;
+        let k, tmp;
+        while (i > 1) {
+            k = Math.floor(Math.random() * i);
+            tmp = values[i];
+            values[i] = values[k];
+            values[k] = tmp;
+            i--;
+        }
+    }
+}
+
+class PointSampler {
     /**
      * @returns {number[][][]}
      */
@@ -33,10 +55,8 @@ export default class PointSampler {
      *
      * @returns {number[][][]}
      */
-    samplePerlinNoise3DPoints(lowerLeft, upperRight) {
-        const permutations = Array.from({length: 256}, (x, i) => i);
-        this.fisherYates(permutations);
-        permutations.push(...permutations)
+    samplePerlinNoise3DPoints(lowerLeft, upperRight, scale, seed) {
+        const permutations = seed.permutations;
 
         /**
          * Calculates fade function in [0, 1] as given by original paper. The function has second derivative = 0 at 0 and 1
@@ -119,27 +139,27 @@ export default class PointSampler {
         // perform sampling
         const width = upperRight.x - lowerLeft.x;
         const depth = upperRight.y - lowerLeft.y;
-        const height = 300;
+        const height = 200;
         const passes = [
-            [0.011, 150, v => Math.pow(v+0.5, 3)/2],
-            [0.027, 50, v => v],
-            [0.057, 20, v => v],
+            [0.0029, 110, v => Math.pow(v+1, 4)/12],
+            [0.0003, 70, v => v],
+            [0.011, 20, v => v],
         ];
 
         let matrix = [];
-        for (let i = 0; i < width; i++) {
+        for (let i = 0; i < width/scale; i++) {
             let slice = [];
-            for (let j = 0; j < depth; j++) {
+            for (let j = 0; j < depth/scale; j++) {
                 slice.push(new Array(height).fill(0));
             }
             matrix.push(slice);
         }
 
-        for (let i = lowerLeft.y; i < upperRight.y; i++) {
-            for (let j = lowerLeft.x; j < upperRight.x; j++) {
+        for (let i = lowerLeft.y/scale; i < upperRight.y/scale; i++) {
+            for (let j = lowerLeft.x/scale; j < upperRight.x/scale; j++) {
                 let h = 0;
                 for (const [s, w, fn] of passes) {
-                    h += fn(sample(j * s, i * s, 1)) * w;
+                    h += fn(sample((j+0.5)*scale * s, (i+0.5)*scale * s, 1)) * w;
                 }
                 for (let k = 0; k < height; k++) {
                     let distanceFromSurface = k - h;
@@ -147,23 +167,13 @@ export default class PointSampler {
                         // avoid floating point errors later
                         distanceFromSurface += 0.0001;
                     }
-                    matrix[i-lowerLeft.x][j-lowerLeft.y][k] = distanceFromSurface;
+                    matrix[j-lowerLeft.x/scale][i-lowerLeft.y/scale][k] = distanceFromSurface;
                 }
             }
         }
 
         return matrix;
     }
-
-    fisherYates(values) {
-        let i = values.length - 1;
-        let k, tmp;
-        while (i > 1) {
-            k = Math.floor(Math.random() * i);
-            tmp = values[i];
-            values[i] = values[k];
-            values[k] = tmp;
-            i--;
-        }
-    }
 }
+
+export {PerlinSeed, PointSampler}
