@@ -1,5 +1,4 @@
-import {PerspectiveCamera, WebGLRenderer, Scene, Vector3} from 'three';
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
+import {PerspectiveCamera, WebGLRenderer, Scene} from 'three';
 
 /**
  * @typedef {{priority: int, action: function(float): void, name: string}} UpdateAction
@@ -18,6 +17,8 @@ export default class Renderer {
     /** @type {Scene} */
     scene;
 
+    elapsedTime = 0;
+
     /**
      * @param {string} rootSelector
      * @param {Scene} scene
@@ -28,7 +29,6 @@ export default class Renderer {
             antialias: true,
         });
         this.camera = new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 5000);
-        this.camera.position.set(50, 80, 100)
         this.updateActions = [];
         this.scene = scene;
     }
@@ -36,20 +36,19 @@ export default class Renderer {
     init() {
         window.addEventListener('resize', this.handleResize.bind(this));
         this.handleResize();
-
-        const orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
-        orbitControls.target = new Vector3(0, 30, 0)
-        this.addUpdateAction('orbit controls', () => orbitControls.update(), 1);
-
+        this.elapsedTime = performance.now();
         this.renderer.setAnimationLoop(this.update.bind(this));
     }
 
     /**
      * @param {float} dt
      */
-    update(dt) {
+    update() {
+        const currentTime = performance.now();
+        const delta = (currentTime - this.elapsedTime) / 1000;
+        this.elapsedTime = currentTime;
         for (const {action} of this.updateActions) {
-            action(dt);
+            action(delta);
         }
 
         this.renderer.render(this.scene, this.camera);
