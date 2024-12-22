@@ -6,6 +6,9 @@ export default class Terrain extends Object3D {
     /** @type {{string: Mesh}} */
     loaded = {};
 
+    /** @type {{string: time}} */
+    chunkTimestamps = {}
+
     /** @type {PerspectiveCamera} */
     camera = null;
 
@@ -20,6 +23,7 @@ export default class Terrain extends Object3D {
 
     update(dt) {
         this.updateChunks();
+        this.unloadChunks();
     }
 
     setCamera(camera) {
@@ -31,6 +35,7 @@ export default class Terrain extends Object3D {
             return;
         }
 
+        // scan for visible chunks
         let cameraPosition = new Vector3();
         this.camera.getWorldPosition(cameraPosition);
 
@@ -47,34 +52,41 @@ export default class Terrain extends Object3D {
 
         let visibleChunks = {};
         for (const rayDir of directions) {
-            for (const len of [-400, 100, 400, 800, 1200]) {
+            for (const len of [-100, 200, 500, 800, 1200]) {
                 const pos = new Vector3(cameraPosition.x, 0, cameraPosition.z).add(rayDir.clone().multiplyScalar(len));
 
-                const chunkX = parseInt(500 * Math.sign(pos.x) * Math.round(Math.abs(pos.x) / 500));
-                const chunkZ = parseInt(500 * Math.sign(pos.z) * Math.round(Math.abs(pos.z) / 500));
+                const chunkX = parseInt(800 * Math.sign(pos.x) * Math.round(Math.abs(pos.x) / 800));
+                const chunkZ = parseInt(800 * Math.sign(pos.z) * Math.round(Math.abs(pos.z) / 800));
                 visibleChunks[`${chunkX},${chunkZ}`] = true;
             }
         }
 
-        for (const ch in this.loaded) {
-            if (!visibleChunks.hasOwnProperty(ch)) {
-                console.log('disposing', ch);
-                this.loaded[ch].dispose();
-                delete this.loaded[ch];
-            }
-        }
-
         for (const ch in visibleChunks) {
+            // update timestamp for all visible chunks
+            this.chunkTimestamps[ch] = performance.now();
             if (this.loaded.hasOwnProperty(ch)) {
                 continue;
             }
 
             const [x, z] = ch.split(",");
             const position = new Vector3(parseInt(x), 0, parseInt(z));
-            this.loaded[ch] = new MarchingCubesMesh(this.seed, position, 250, 5);
+            this.loaded[ch] = new MarchingCubesMesh(this.seed, position, 400, 5);
             this.loaded[ch].position.copy(position);
             console.log('loading', ch);
             this.add(this.loaded[ch]);
+        }
+    }
+
+    unloadChunks() {
+        for (const ch in this.chunkTimestamps) {
+            if (performance.now() - this.chunkTimestamps[ch] < 3000) {
+                continue;
+            }
+
+            delete this.chunkTimestamps[ch];
+            console.log('disposing', ch);
+            this.loaded[ch].dispose();
+            delete this.loaded[ch];
         }
     }
 }

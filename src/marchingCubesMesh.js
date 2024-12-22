@@ -4,6 +4,7 @@ import {BufferAttribute, BufferGeometry, DoubleSide, Mesh, MeshPhongMaterial, Ve
 
 export default class MarchingCubesMesh extends Mesh {
     terrainScale = 1;
+    loaded = false;
 
     constructor(seed, position, halfSize, scale = 2) {
         super();
@@ -20,6 +21,19 @@ export default class MarchingCubesMesh extends Mesh {
             [999, 0.66, 0.66, 0.72],
         ];
 
+        this.generateAttributes(seed, position, halfSize).then(
+            ([vertices, colors]) => {
+                this.geometry = new BufferGeometry();
+                this.geometry.setAttribute('position', new BufferAttribute(new Float32Array(vertices), 3));
+                this.geometry.setAttribute('color', new BufferAttribute(new Float32Array(colors), 3));
+                this.geometry.computeVertexNormals();
+                this.material = new MeshPhongMaterial({vertexColors: true, side: DoubleSide});
+                this.loaded = true;
+            }
+        );
+    }
+
+    async generateAttributes(seed, position, halfSize) {
         const pointSampler = new PointSampler();
         const matrix = pointSampler.samplePerlinNoise3DPoints(
             new Vector2(position.x-halfSize, position.z-halfSize),
@@ -88,16 +102,15 @@ export default class MarchingCubesMesh extends Mesh {
             )
         }
 
-        this.geometry = new BufferGeometry();
-        this.geometry.setAttribute('position', new BufferAttribute(new Float32Array(vertices), 3));
-        this.geometry.setAttribute('color', new BufferAttribute(new Float32Array(colors), 3));
-        this.geometry.computeVertexNormals();
-        this.material = new MeshPhongMaterial({vertexColors: true, side: DoubleSide});
+        return [vertices, colors];
     }
 
     dispose() {
-        this.geometry.dispose();
-        this.material.dispose();
+        if (this.loaded) {
+            this.geometry.dispose();
+            this.material.dispose();
+        }
+
         this.removeFromParent();
     }
 

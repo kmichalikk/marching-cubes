@@ -147,16 +147,16 @@ class PointSampler {
         ];
 
         let matrix = [];
-        for (let i = 0; i < width/scale; i++) {
+        for (let i = 0; i <= width/scale; i++) {
             let slice = [];
-            for (let j = 0; j < depth/scale; j++) {
+            for (let j = 0; j <= depth/scale; j++) {
                 slice.push(new Array(height).fill(0));
             }
             matrix.push(slice);
         }
 
-        for (let i = lowerLeft.y/scale; i < upperRight.y/scale; i++) {
-            for (let j = lowerLeft.x/scale; j < upperRight.x/scale; j++) {
+        for (let i = lowerLeft.y/scale; i <= upperRight.y/scale; i++) {
+            for (let j = lowerLeft.x/scale; j <= upperRight.x/scale; j++) {
                 let h = 0;
                 for (const [s, w, fn] of passes) {
                     h += fn(sample((j+0.5)*scale * s, (i+0.5)*scale * s, 1)) * w;

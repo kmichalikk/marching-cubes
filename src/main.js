@@ -9,7 +9,7 @@ const scene = new Scene();
 const renderer = new Renderer("#root", scene);
 const player = new Player();
 scene.add(player);
-player.position.set(0, 800, 0);
+player.position.set(0, 1000, 0);
 player.setCameraToFollow(renderer.camera);
 renderer.addUpdateAction('move player', player.update.bind(player));
 

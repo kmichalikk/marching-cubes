@@ -2,7 +2,7 @@ import {BoxGeometry, Mesh, MeshPhongMaterial, Object3D, Vector3} from "three";
 
 export default class Player extends Object3D {
     rotation = 0;
-    move = new Vector3(0, 0, 0.1);
+    move = new Vector3(0, 0, 0.2);
     rotateLeft = false;
     rotateRight = false;
 
@@ -41,7 +41,7 @@ export default class Player extends Object3D {
 
         this.move.applyAxisAngle(new Vector3(0, 1, 0), this.rotation * dt);
         this.rotateY(this.rotation * dt);
-        // this.position.add(this.move);
+        this.position.add(this.move);
         this.rotation -= this.rotation * dt;
         this.rotation -= this.rotation * dt;
     }
