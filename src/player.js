@@ -2,9 +2,11 @@ import {BoxGeometry, Mesh, MeshPhongMaterial, Object3D, Vector3} from "three";
 
 export default class Player extends Object3D {
     rotation = 0;
-    move = new Vector3(0, 0, 0.2);
+    speed = 0.1;
+    direction = new Vector3(0, 0, 1);
     rotateLeft = false;
     rotateRight = false;
+    accelerate = false;
 
     constructor() {
         super();
@@ -19,6 +21,8 @@ export default class Player extends Object3D {
                 this.rotateLeft = true;
             } else if (event.key === "d") {
                 this.rotateRight = true;
+            } else if (event.key === "w") {
+                this.accelerate = true;
             }
         })
 
@@ -27,6 +31,8 @@ export default class Player extends Object3D {
                 this.rotateLeft = false;
             } else if (event.key === "d") {
                 this.rotateRight = false;
+            } else if (event.key === "w") {
+                this.accelerate = false;
             }
         })
     }
@@ -38,12 +44,17 @@ export default class Player extends Object3D {
         if (this.rotateRight) {
             this.rotation -= dt;
         }
+        if (this.accelerate) {
+            this.speed = Math.min(0.8, this.speed + dt);
+        }
 
-        this.move.applyAxisAngle(new Vector3(0, 1, 0), this.rotation * dt);
+        this.direction.applyAxisAngle(new Vector3(0, 1, 0), this.rotation * dt);
         this.rotateY(this.rotation * dt);
-        this.position.add(this.move);
+        let move = this.direction.clone().multiplyScalar(this.speed);
+        this.position.add(move);
         this.rotation -= this.rotation * dt;
         this.rotation -= this.rotation * dt;
+        this.speed = Math.max(0.1, this.speed - dt/3);
     }
 
     setCameraToFollow(camera) {
