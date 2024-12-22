@@ -52,7 +52,7 @@ export default class Terrain extends Object3D {
 
         let visibleChunks = {};
         for (const rayDir of directions) {
-            for (const len of [-100, 200, 500, 800, 1200]) {
+            for (const len of [-100, 200, 500, 800, 1200, 1600, 2000, 2500]) {
                 const pos = new Vector3(cameraPosition.x, 0, cameraPosition.z).add(rayDir.clone().multiplyScalar(len));
 
                 const chunkX = parseInt(800 * Math.sign(pos.x) * Math.round(Math.abs(pos.x) / 800));
