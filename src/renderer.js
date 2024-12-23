@@ -1,5 +1,6 @@
-import {PerspectiveCamera, WebGLRenderer, Scene, Vector3} from 'three';
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
+import {PerspectiveCamera, WebGLRenderer, Scene, PMREMGenerator, LinearSRGBColorSpace} from 'three';
+import {RGBELoader} from "three/examples/jsm/loaders/RGBELoader.js";
+import hdriUrl from "../assets/industrial_sunset_02_puresky_2k.hdr";
 
 /**
  * @typedef {{priority: int, action: function(float): void, name: string}} UpdateAction
@@ -30,6 +31,7 @@ export default class Renderer {
             antialias: true,
             logarithmicDepthBuffer: true,
         });
+        this.renderer.outputColorSpace = LinearSRGBColorSpace;
         this.camera = new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 5000);
         this.updateActions = [];
         this.scene = scene;
@@ -40,6 +42,17 @@ export default class Renderer {
         this.handleResize();
         this.elapsedTime = performance.now();
         this.renderer.setAnimationLoop(this.update.bind(this));
+
+        const hdriLoader = new RGBELoader();
+        const pmremGenerator = new PMREMGenerator(this.renderer);
+        hdriLoader.load(hdriUrl, (texture) => {
+            const envMap = pmremGenerator.fromEquirectangular(texture).texture;
+            texture.dispose();
+            this.scene.background = envMap;
+            this.scene.backgroundIntensity = 0.8;
+            this.scene.environment = envMap;
+            this.scene.environmentIntensity = 0.8;
+        });
     }
 
     /**

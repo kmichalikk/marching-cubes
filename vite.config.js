@@ -1,3 +1,3 @@
 export default {
-    assetsInclude: ['assets/*.glb'],
+    assetsInclude: ['assets/*.glb', 'assets/*.hdr'],
 }
