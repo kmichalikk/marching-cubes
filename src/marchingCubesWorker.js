@@ -4,18 +4,18 @@ import {getWeights, lookupIndices, lookupTriangulation} from "./lookup.js";
 
 const colormap = [
     [0, 0.73, 0.81, 0.53],
-    [50, 0.85, 0.84, 0.53],
-    [80, 0.34, 0.64, 0.3],
-    [100, 0.28, 0.54, 0.24],
-    [120, 0.5, 0.5, 0.5],
+    [40, 0.85, 0.84, 0.53],
+    [48, 0.34, 0.64, 0.3],
+    [80, 0.28, 0.54, 0.24],
+    [110, 0.5, 0.5, 0.5],
     [160, 0.46, 0.46, 0.52],
     [999, 0.46, 0.46, 0.52],
 ];
 
-function sampleColor(height, slope, scale) {
+function sampleColor(height, slope) {
     // adjust height by slope (dot product between normal and up vector)
     // with some linear function that looks good
-    const adjustedHeight = height * (0.9 + slope) / scale;
+    const adjustedHeight = height * (0.9 + slope);
 
     // find a threshold that current height fits in
     let i = 0;
@@ -98,7 +98,7 @@ onmessage = (event) => {
 
         const midHeight = Math.max(vertices[i+1], vertices[i+4], vertices[i+7]);
 
-        const color = sampleColor(midHeight, slope, scale);
+        const color = sampleColor(midHeight, slope);
         colors.push(
             ...color,
             ...color,

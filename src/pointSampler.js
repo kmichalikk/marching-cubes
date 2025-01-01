@@ -139,11 +139,21 @@ class PointSampler {
         // perform sampling
         const width = upperRight.x - lowerLeft.x;
         const depth = upperRight.y - lowerLeft.y;
-        const height = 200;
+        const height = 300 / scale;
         const passes = [
-            [0.0029, 110, v => Math.pow(v+1, 4)/12],
-            [0.0003, 70, v => v],
-            [0.011, 20, v => v],
+            (x, y) => {
+                // terrain outline
+                const f = 0.01
+                return 50 * sample(x * f, y * f, 1);
+            },
+            (x, y) => {
+                // mountains
+                const f1 = 0.0039
+                const f2 = 0.027
+                let outline = sample(x * f1, y * f1, 1);
+                let detail = sample(x * f2, y * f2, 2) - 0.5;
+                return 80 * (0.3 * detail + 1.2) * Math.pow(outline + 0.3, 4);
+            }
         ];
 
         let matrix = [];
@@ -158,9 +168,10 @@ class PointSampler {
         for (let i = lowerLeft.y/scale; i <= upperRight.y/scale; i++) {
             for (let j = lowerLeft.x/scale; j <= upperRight.x/scale; j++) {
                 let h = 0;
-                for (const [s, w, fn] of passes) {
-                    h += fn(sample((j+0.5)*scale * s, (i+0.5)*scale * s, 1)) * w;
+                for (const fn of passes) {
+                    h += fn((j+0.5) * scale, (i+0.5) * scale);
                 }
+                h /= scale;
                 for (let k = 0; k < height; k++) {
                     let distanceFromSurface = k - h;
                     if (distanceFromSurface < 0.0001) {

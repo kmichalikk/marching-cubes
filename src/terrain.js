@@ -44,19 +44,19 @@ export default class Terrain extends Object3D {
 
         let directions = []
         const up = new Vector3(0, 1, 0);
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 12; i++) {
             let rayDir = new Vector3(dir.x, 0, dir.z).normalize();
-            rayDir.applyAxisAngle(up, -Math.PI/4 + i * Math.PI/20);
+            rayDir.applyAxisAngle(up, -Math.PI/3 + i * Math.PI/18);
             directions.push(rayDir);
         }
 
         let visibleChunks = {};
         for (const rayDir of directions) {
-            for (const len of [-100, 200, 500, 800, 1200, 1600, 2000, 2500]) {
+            for (const len of [-100, 100, 300, 500, 750, 1000, 1200]) {
                 const pos = new Vector3(cameraPosition.x, 0, cameraPosition.z).add(rayDir.clone().multiplyScalar(len));
 
-                const chunkX = parseInt(800 * Math.sign(pos.x) * Math.round(Math.abs(pos.x) / 800));
-                const chunkZ = parseInt(800 * Math.sign(pos.z) * Math.round(Math.abs(pos.z) / 800));
+                const chunkX = 400 * Math.sign(pos.x) * Math.round(Math.abs(pos.x) / 400);
+                const chunkZ = 400 * Math.sign(pos.z) * Math.round(Math.abs(pos.z) / 400);
                 visibleChunks[`${chunkX},${chunkZ}`] = true;
             }
         }
@@ -70,7 +70,7 @@ export default class Terrain extends Object3D {
 
             const [x, z] = ch.split(",");
             const position = new Vector3(parseInt(x), 0, parseInt(z));
-            this.loaded[ch] = new MarchingCubesTerrainChunk(this.seed, position, 400, 5);
+            this.loaded[ch] = new MarchingCubesTerrainChunk(this.seed, position, 200, 10);
             this.loaded[ch].position.copy(position);
             console.log('loading', ch);
             this.add(this.loaded[ch]);
