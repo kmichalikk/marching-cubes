@@ -32,7 +32,7 @@ export default class Renderer {
             logarithmicDepthBuffer: true,
         });
         this.renderer.outputColorSpace = LinearSRGBColorSpace;
-        this.camera = new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 5000);
+        this.camera = new PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 5000);
         this.updateActions = [];
         this.scene = scene;
     }
